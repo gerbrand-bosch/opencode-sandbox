@@ -7,6 +7,7 @@ SANDBOX="opencode-$(basename "$PROJECT_DIR")"
 IMAGE="opencode-tools:latest"
 ENVFILE="$HOME/.local/share/opencode-sandbox/config.env"
 AGENTS="$HOME/.config/opencode/agents"
+SANDBOX_CONFIG="$HOME/.config/opencode-sandbox"
 PORT=50001
 NO_MOUNT=false
 SHELL_MODE=false
@@ -62,9 +63,10 @@ set +a
 # Build the mount arguments
 MOUNT_ARGS=()
 if [ "$NO_MOUNT" = false ]; then
-  MOUNT_ARGS+=(--mount-dir "$PROJECT_DIR":/workspace)
+  MOUNT_ARGS+=(--mount-dir "$PROJECT_DIR":/opencode/workspace)
 fi
 MOUNT_ARGS+=(--mount-dir "$AGENTS":/root/.config/opencode/agents:ro)
+MOUNT_ARGS+=(--mount-dir "$SANDBOX_CONFIG":/opencode/config:ro)
 
 exec msb run "$IMAGE" --name "$SANDBOX" --replace \
   "${MOUNT_ARGS[@]}" \
@@ -72,8 +74,13 @@ exec msb run "$IMAGE" --name "$SANDBOX" --replace \
   -e OPENCODE_CONFIG_CONTENT="{\"model\":\"mistral/mistral-small-latest\"}" \
   --entrypoint start \
   --script start="
-    mkdir -p /workspace
-    cd /workspace
+    mkdir -p /opencode/workspace
+    cd /opencode/workspace
+    
+    # Copy OpenCode config if it exists in the mounted config directory
+    if [ -f /opencode/config/opencode-with-tools.json ]; then
+      cp /opencode/config/opencode-with-tools.json /opencode/
+    fi
     
     if [ "$SHELL_MODE" = true ]; then
       # Shell mode - just start a shell

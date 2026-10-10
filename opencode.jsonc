@@ -1,0 +1,38 @@
+{
+  "$schema": "https://opencode.ai/v2/config.json",
+  
+  "default_agent": "sandbox-shell-agent",
+  
+  "agents": {
+    "sandbox-shell-agent": {
+      "description": "Agent aware of available shell tools in the sandbox environment",
+      "mode": "primary",
+      "model": "mistral/mistral-small-latest"
+    },
+    
+    "github-issue-agent": {
+      "description": "Assist with creating GitHub issues",
+      "mode": "primary"
+    },
+    
+    "build": {
+      "description": "Default coding agent",
+      "mode": "primary"
+    },
+    
+    "plan": {
+      "description": "Explores and plans without editing normal project files",
+      "mode": "primary"
+    },
+    
+    "general": {
+      "description": "Handles research and multi-step work with broad tool access",
+      "mode": "subagent"
+    },
+    
+    "explore": {
+      "description": "Searches and reads code or web sources without editing files",
+      "mode": "subagent"
+    }
+  }
+}
