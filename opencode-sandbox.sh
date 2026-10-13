@@ -32,13 +32,24 @@ while [[ $# -gt 0 ]]; do
       shift 2
     else
       echo "Error: --port requires a port number"
-      echo "Usage: $0 [--no-mount|-n] [--shell|-s] [--port|-p PORT]"
+      echo "Usage: $0 [--no-mount|-n] [--shell|-s] [--port|-p PORT] [--secrets-env PATH]"
       exit 1
     fi
     ;;
+  --secrets-env)
+    if [[ -n "${2:-}" && "$2" != -* ]]; then
+      SECRETS_ENV="$2"
+      shift 2
+    else
+      echo "Error: --secrets-env requires a file path"
+      echo "Usage: $0 [--no-mount|-n] [--shell|-s] [--port|-p PORT] [--secrets-env PATH]"
+      exit 1
+    fi
+    ;;
+
   *)
     echo "Unknown argument: $1"
-    echo "Usage: $0 [--no-mount|-n] [--shell|-s] [--port|-p PORT]"
+    echo "Usage: $0 [--no-mount|-n] [--shell|-s] [--port|-p PORT] [--secrets-env PATH]"
     exit 1
     ;;
   esac
@@ -52,13 +63,19 @@ if [ "$CUSTOM_PORT" = true ]; then
   fi
 fi
 
-[ -f "$ENVFILE" ] || {
-  echo "Create $ENVFILE with MISTRAL_API_KEY first"
+# Validate secrets file exists
+[ -f "$SECRETS_ENV" ] || {
+  echo "Error: Secrets file not found at $SECRETS_ENV"
+  echo "Please create it or specify a different location with --secrets-env"
   exit 1
 }
 set -a
-. "$ENVFILE"
+. "$SECRETS_ENV"
 set +a
+
+# Set default password if not specified in env file
+OPENCODE_PASSWORD=${OPENCODE_PASSWORD:-blaat}
+OPENCODE_SERVER_PASSWORD=${OPENCODE_SERVER_PASSWORD:-blaat}
 
 # Build the mount arguments
 MOUNT_ARGS=()
@@ -96,8 +113,8 @@ exec msb run "$IMAGE" --name "$SANDBOX" --replace \
       exec /bin/bash
     else
       # Normal mode - start OpenCode UI
-      export OPENCODE_PASSWORD='blaat'
-      export OPENCODE_SERVER_PASSWORD='blaat'
+      export OPENCODE_PASSWORD='$OPENCODE_PASSWORD'
+      export OPENCODE_SERVER_PASSWORD='$OPENCODE_SERVER_PASSWORD'
       $OPENCODE serve --hostname 0.0.0.0 --port ${PORT} > /tmp/opencode-serve.log 2>&1 &
       SERVER_PID=\$!
 
