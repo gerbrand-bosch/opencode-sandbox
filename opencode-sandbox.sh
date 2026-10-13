@@ -68,6 +68,14 @@ fi
 MOUNT_ARGS+=(--mount-dir "$AGENTS":/root/.config/opencode/agents:ro)
 MOUNT_ARGS+=(--mount-dir "$SANDBOX_CONFIG":/opencode/config:ro)
 
+# Mount OpenCode v2 session directory for session persistence
+# Use full path (converted to underscores) to prevent concurrent access issues
+# This ensures uniqueness even for projects with similar names in different directories
+FULL_PATH=$(echo "$PROJECT_DIR" | sed 's|/|_|g' | sed 's|^_||')
+SESSION_DIR="$HOME/.local/share/opencode-sandbox/sessions/$FULL_PATH"
+mkdir -p "$SESSION_DIR"
+MOUNT_ARGS+=(--mount-dir "$SESSION_DIR":/root/.local/share/opencode)
+
 exec msb run "$IMAGE" --name "$SANDBOX" --replace \
   "${MOUNT_ARGS[@]}" \
   -e MISTRAL_API_KEY \
