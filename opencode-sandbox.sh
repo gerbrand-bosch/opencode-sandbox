@@ -80,6 +80,7 @@ exec msb run "$IMAGE" --name "$SANDBOX" --replace \
   "${MOUNT_ARGS[@]}" \
   -e MISTRAL_API_KEY \
   -e OPENCODE_CONFIG_CONTENT="{\"model\":\"mistral/mistral-small-latest\"}" \
+  -m 2G \
   --entrypoint start \
   --script start="
     mkdir -p /opencode/workspace
