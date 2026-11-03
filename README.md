@@ -27,14 +27,17 @@ chmod +x build-and-load-image.sh
 ### 2. Start OpenCode
 
 ```bash
-# Start the main OpenCode container (default port: 50000 for web)
-./start-opencode.sh
+# Start the main OpenCode container (default port: 50001 for web)
+./opencode-sandbox.sh
 
 # Custom port
-./start-opencode.sh --port 3000
+./opencode-sandbox.sh --port 3000
 
 # Shell mode (for debugging/advanced usage)
-./start-opencode.sh --shell
+./opencode-sandbox.sh --shell
+
+# Custom secrets file location
+./opencode-sandbox.sh --secrets-env /path/to/my-secrets.env
 ```
 
 ### 3. Access OpenCode
@@ -69,6 +72,43 @@ msb exec opencode tesseract input.png output -l eng
 - `./data`: Stores all persistent data
 - `./config`: Stores configuration files
 
+## Configuration Options
+
+The OpenCode sandbox supports several configuration methods:
+
+### Command Line Arguments
+
+| Argument | Description | Default Value |
+|----------|-------------|---------------|
+| `--secrets-env <path>` | Path to secrets file (.env) | `$HOME/.local/share/opencode-sandbox/config.env` |
+| `--port <port>` | Port for OpenCode web interface | `50001` |
+| `--no-mount` | Disable project directory mounting | Disabled |
+| `--shell` | Start in shell mode | Disabled |
+
+### Environment Variables in .env file
+
+You can also configure OpenCode by setting these variables in your `.env` file:
+
+- `OPENCODE_PASSWORD` - Password for OpenCode server (default: `blaat`)
+- `OPENCODE_SERVER_PASSWORD` - Server password (default: `blaat`)
+- `OPENCODE_WEB_PASSWORD` - Web interface password
+- `OPENCODE_API_KEY` - API key for models
+- `OPENCODE_HOST` - Host address
+- `OPENCODE_PORT` - Port number
+
+### Examples
+
+```bash
+# Use custom secrets file
+./opencode-sandbox.sh --secrets-env /path/to/my-secrets.env
+
+# Use custom port
+./opencode-sandbox.sh --port 8080
+
+# Combine options
+./opencode-sandbox.sh --port 8080 --secrets-env ./my.env
+```
+
 ## Updating
 
 To update to a newer version:
@@ -79,14 +119,15 @@ To update to a newer version:
 
 # Restart your containers
 msb stop opencode
-./start-opencode.sh
+./opencode-sandbox.sh
 ```
 
 ## Security Notes
 
 - The containers run with elevated privileges (`SYS_ADMIN` capability) required for some PDF operations
 - AppArmor is disabled for better compatibility
-- Consider setting strong passwords and API keys
+- **Secrets Management**: Store your `.env` file in a secure location and use `--secrets-env` to specify its path
+- **Password Configuration**: Set `OPENCODE_PASSWORD` in your `.env` file for better security
 - For production, use proper security measures and network isolation
 
 ## Troubleshooting
@@ -122,6 +163,25 @@ To add more tools or customize the setup:
 3. Restart your containers as needed
 
 ## Command Reference
+
+### Starting OpenCode Sandbox
+
+```bash
+# Start with default configuration
+./opencode-sandbox.sh
+
+# Custom port
+./opencode-sandbox.sh --port 3000
+
+# Shell mode
+./opencode-sandbox.sh --shell
+
+# Custom secrets file
+./opencode-sandbox.sh --secrets-env /path/to/secrets.env
+
+# Disable project mounting
+./opencode-sandbox.sh --no-mount
+```
 
 ### Basic microsandbox commands
 
